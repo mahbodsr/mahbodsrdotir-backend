@@ -1,4 +1,3 @@
-import { parse } from "url";
 import { TelegramClient, Api } from "telegram";
 import { StoreSession } from "telegram/sessions";
 import { NewMessage, NewMessageEvent } from "telegram/events";
@@ -8,7 +7,6 @@ import dotenv from "dotenv";
 import cors from "cors";
 import bodyParser from "body-parser";
 import { EventEmitter } from "events";
-import VideosMap from "./utilities/videos-map";
 import bigInt from "big-integer";
 import "./utilities/job";
 import saveVideo from "./services/save-video";
@@ -58,8 +56,6 @@ declare global {
   }
 }
 
-const Regex = /^\/(assets|login)/;
-
 const generateOTP = (): number => {
   return Math.floor(100000 + Math.random() * 900000);
 };
@@ -98,19 +94,19 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
 
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.use(cors({ origin: true }));
+app.use(cors({ origin: true, credentials: true }));
 
-app.get("/api/phonecode/:phonecode", async (req: Request) => {
+app.get("/phonecode/:phonecode", async (req: Request) => {
   event.emit("phonecode", req.params.phonecode);
 });
 
 (async () => {
-  const videos = new VideosMap(videosJsonPath);
+  const videos = new Map();
   const client = new TelegramClient(
     new StoreSession("mahbodsr_second"),
     +process.env.API_ID!,
     process.env.API_HASH!,
-    {}
+    { proxy: { port: 10808, ip: "127.0.0.1", socksType: 5 } }
   );
 
   app.listen(PORT, () => {
@@ -129,7 +125,7 @@ app.get("/api/phonecode/:phonecode", async (req: Request) => {
   client.session.save();
 
   app.get(
-    "/api/stream/:chatId/:messageId",
+    "/stream/:chatId/:messageId",
     authenticateJWT,
     async (req, res) => {
       const range = req.headers.range;
@@ -175,7 +171,7 @@ app.get("/api/phonecode/:phonecode", async (req: Request) => {
     }
   );
 
-  app.post("/api/sendOTP", async (req: Request, res: Response) => {
+  app.post("/otp/send", async (req: Request, res: Response) => {
     const { username } = req.body as Record<string, string>;
 
     if (!username || !users[username]) {
@@ -206,7 +202,7 @@ app.get("/api/phonecode/:phonecode", async (req: Request) => {
     res.status(200).end();
   });
 
-  app.post("/api/verifyOTP", (req: Request, res: Response) => {
+  app.post("/otp/verify", (req: Request, res: Response) => {
     const { username, otp } = req.body as Record<string, string>;
 
     if (!username || !otp || !users[username]) {
@@ -234,34 +230,21 @@ app.get("/api/phonecode/:phonecode", async (req: Request) => {
     const token = jwt.sign({ username }, SECRET_KEY, {
       expiresIn: "7d",
     });
-    res.status(200).cookie("token", token).end();
+    res
+      .status(200)
+      .cookie("token", token)
+      .end();
   });
 
-  app.get("/api/videos", authenticateJWT, async (_, res) => {
+  app.get("/videos", authenticateJWT, async (_, res) => {
     let videos = {};
     try {
-      videos = JSON.parse(await readFile(videosJsonPath, "utf-8")) as VideosMap;
+      videos = JSON.parse(await readFile(videosJsonPath, "utf-8"));
     } catch (error) {
       console.log(error);
     }
     res.status(200).json(videos).end();
   });
-
-  app.use(express.static(join(__dirname, "..", "dist")));
-
-  app.get(
-    "*",
-    (req: Request, res: Response, next: NextFunction) => {
-      const parsedUrl = parse(req.url!, true);
-      const { pathname } = parsedUrl;
-
-      if (Regex.test(pathname ?? "")) next();
-      else authenticateJWT(req, res, next);
-    },
-    (_, res) => {
-      res.sendFile(join(__dirname, "..", "dist", "root.html"));
-    }
-  );
 
   client.addEventHandler(async (event: NewMessageEvent) => {
     if (event.chatId === undefined) return;

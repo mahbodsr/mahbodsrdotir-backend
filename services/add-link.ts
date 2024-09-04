@@ -1,4 +1,3 @@
-import VideosMap from "../utilities/videos-map";
 import { NewMessageEvent } from "telegram/events";
 import { CronJob } from "cron";
 
@@ -7,7 +6,7 @@ const DYNAMIC_HOURS_MS = 24 * ONE_HOUR;
 
 const addLink = async (
   event: NewMessageEvent,
-  videos: VideosMap,
+  videos: Map<string, any>,
   videosUrl: string
 ) => {
   const id = `${event.message.chatId}/${event.message.id}`;
@@ -21,7 +20,7 @@ const addLink = async (
     createdAt: Date.now(),
     redirect: link,
   };
-  await videos.set(id, video);
+  videos.set(id, video);
 
   await event.message.reply({
     message: `✅ Your link has been added.\n<a href="${videosUrl}">Go to mahbodsr.ir</a>`,
@@ -29,8 +28,8 @@ const addLink = async (
     parseMode: "html",
   });
   new CronJob(new Date(video.createdAt + DYNAMIC_HOURS_MS), async () => {
-    await videos.delete(id);
-  }).start()
+    videos.delete(id);
+  }).start();
 };
 
 export default addLink;

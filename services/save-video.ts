@@ -1,4 +1,3 @@
-import VideosMap from "../utilities/videos-map";
 import { CronJob } from "cron";
 import { Api } from "telegram";
 import { NewMessageEvent } from "telegram/events";
@@ -8,7 +7,7 @@ const DYNAMIC_HOURS_MS = 24 * ONE_HOUR;
 
 const saveVideo = async (
   event: NewMessageEvent,
-  videos: VideosMap,
+  videos: Map<string, any>,
   videosUrl: string
 ) => {
   const id = `${event.chatId}/${event.message.id}`;
@@ -24,7 +23,7 @@ const saveVideo = async (
     caption: event.message.text,
     createdAt: Date.now(),
   };
-  await videos.set(id, video);
+  videos.set(id, video);
 
   await event.message.reply({
     message: `✅ Your video has been added.\nTo rename video, reply video and send new name.\n<a href="${videosUrl}/${id}">Watch ${video.nickName}</a>`,
@@ -32,7 +31,7 @@ const saveVideo = async (
     parseMode: "html",
   });
   new CronJob(new Date(video.createdAt + DYNAMIC_HOURS_MS), async () => {
-    await videos.delete(id);
+    videos.delete(id);
   }).start();
 };
 

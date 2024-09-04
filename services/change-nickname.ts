@@ -1,16 +1,15 @@
-import VideosMap from "../utilities/videos-map";
 import { NewMessageEvent } from "telegram/events";
 
 const changeNickName = async (
   event: NewMessageEvent,
-  videos: VideosMap,
+  videos: Map<string, any>,
   videosUrl: string
 ) => {
   const id = `${event.message.chatId}/${event.message.replyTo!.replyToMsgId}`;
   const video = videos.get(id);
   if (video === undefined) return;
   const newnickName = event.message.message;
-  await videos.set(id, {
+  videos.set(id, {
     ...video,
     nickName: newnickName,
   });
