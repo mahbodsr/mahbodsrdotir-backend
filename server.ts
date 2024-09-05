@@ -106,7 +106,9 @@ app.get("/phonecode/:phonecode", async (req: Request) => {
     new StoreSession("mahbodsr_second"),
     +process.env.API_ID!,
     process.env.API_HASH!,
-    { proxy: { port: 10808, ip: "127.0.0.1", socksType: 5 } }
+    process.env.NODE_ENV === "production"
+      ? {}
+      : { proxy: { port: 10808, ip: "127.0.0.1", socksType: 5 } }
   );
 
   app.listen(PORT, () => {
