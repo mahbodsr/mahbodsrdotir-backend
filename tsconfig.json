@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "CommonJS",
-    "moduleResolution": null,
+    "moduleResolution": "node",
     "outDir": "./dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -16,6 +16,5 @@
     "typeRoots": ["./node_modules/@types"],
     "strictNullChecks": true
   },
-  "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
