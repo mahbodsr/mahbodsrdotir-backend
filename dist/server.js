@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const telegram_1 = require("telegram");
 const sessions_1 = require("telegram/sessions");
 const events_1 = require("telegram/events");
-const path_1 = require("path");
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const cors_1 = __importDefault(require("cors"));
@@ -20,13 +19,11 @@ const get_phonecode_1 = __importDefault(require("./utilities/get-phonecode"));
 const add_link_1 = __importDefault(require("./services/add-link"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
-const promises_1 = require("fs/promises");
 const event = new events_2.EventEmitter();
 dotenv_1.default.config();
 const allowedUserIds = process.env.ALLOWED_USER_IDS.split(",");
 const PORT = process.env.PORT;
 const HOST = process.env.DOMAIN ?? "localhost";
-const videosJsonPath = (0, path_1.join)(process.cwd(), "videos.json");
 const videosUrl = `https://${HOST}`;
 const app = (0, express_1.default)();
 const users = {
@@ -173,25 +170,19 @@ app.get("/phonecode/:phonecode", async (req) => {
         const token = jsonwebtoken_1.default.sign({ username }, SECRET_KEY, {
             expiresIn: "7d",
         });
-        res.status(200)
+        res
+            .status(200)
             .cookie("token", token, {
             httpOnly: false, // Changed to false to allow access from JavaScript
             secure: true,
-            sameSite: 'none',
-            domain: '.mahbodsr.ir',
+            sameSite: "none",
+            domain: ".mahbodsr.ir",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
         })
             .end();
     });
     app.get("/videos", authenticateJWT, async (_, res) => {
-        let videos = {};
-        try {
-            videos = JSON.parse(await (0, promises_1.readFile)(videosJsonPath, "utf-8"));
-        }
-        catch (error) {
-            console.log(error);
-        }
-        res.status(200).json(videos).end();
+        res.status(200).json(Object.fromEntries(videos)).end();
     });
     client.addEventHandler(async (event) => {
         if (event.chatId === undefined)

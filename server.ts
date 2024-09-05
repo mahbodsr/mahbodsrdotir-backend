@@ -1,7 +1,6 @@
 import { TelegramClient, Api } from "telegram";
 import { StoreSession } from "telegram/sessions";
 import { NewMessage, NewMessageEvent } from "telegram/events";
-import { join } from "path";
 import express, { NextFunction, Request, Response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -15,7 +14,6 @@ import getPhoneCode from "./utilities/get-phonecode";
 import addLink from "./services/add-link";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import cookieParser from "cookie-parser";
-import { readFile } from "fs/promises";
 
 interface IUsers {
   [key: string]: {
@@ -31,7 +29,6 @@ dotenv.config();
 const allowedUserIds = process.env.ALLOWED_USER_IDS!.split(",");
 const PORT = process.env.PORT!;
 const HOST = process.env.DOMAIN ?? "localhost";
-const videosJsonPath = join(process.cwd(), "videos.json");
 
 const videosUrl = `https://${HOST}`;
 
@@ -227,25 +224,20 @@ app.get("/phonecode/:phonecode", async (req: Request) => {
     const token = jwt.sign({ username }, SECRET_KEY, {
       expiresIn: "7d",
     });
-    res.status(200)
+    res
+      .status(200)
       .cookie("token", token, {
         httpOnly: false, // Changed to false to allow access from JavaScript
         secure: true,
-        sameSite: 'none',
-        domain: '.mahbodsr.ir',
+        sameSite: "none",
+        domain: ".mahbodsr.ir",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
       })
       .end();
   });
 
   app.get("/videos", authenticateJWT, async (_, res) => {
-    let videos = {};
-    try {
-      videos = JSON.parse(await readFile(videosJsonPath, "utf-8"));
-    } catch (error) {
-      console.log(error);
-    }
-    res.status(200).json(videos).end();
+    res.status(200).json(Object.fromEntries(videos)).end();
   });
 
   client.addEventHandler(async (event: NewMessageEvent) => {
