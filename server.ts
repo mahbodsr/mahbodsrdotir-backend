@@ -95,7 +95,10 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(cors({ origin: "https://mahbodsr.ir", credentials: true }));
-
+app.use((req, _, next) => {
+  console.log(req);
+  next();
+});
 app.get("/phonecode/:phonecode", async (req: Request) => {
   event.emit("phonecode", req.params.phonecode);
 });
