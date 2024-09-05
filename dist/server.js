@@ -70,11 +70,6 @@ const authenticateJWT = (req, res, next) => {
 app.use(body_parser_1.default.json());
 app.use((0, cookie_parser_1.default)());
 app.use((0, cors_1.default)({ origin: "https://mahbodsr.ir", credentials: true }));
-app.use((req, _, next) => {
-    console.log(req.url);
-    console.log(req.method);
-    next();
-});
 app.get("/phonecode/:phonecode", async (req) => {
     event.emit("phonecode", req.params.phonecode);
 });
