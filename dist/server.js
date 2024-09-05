@@ -66,7 +66,10 @@ const authenticateJWT = (req, res, next) => {
 };
 app.use(body_parser_1.default.json());
 app.use((0, cookie_parser_1.default)());
-app.use((0, cors_1.default)({ origin: "https://mahbodsr.ir", credentials: true }));
+app.use((0, cors_1.default)({
+    origin: process.env.NODE_ENV === "production" ? "https://mahbodsr.ir" : true,
+    credentials: true,
+}));
 app.get("/phonecode/:phonecode", async (req) => {
     event.emit("phonecode", req.params.phonecode);
 });
@@ -174,9 +177,9 @@ app.get("/phonecode/:phonecode", async (req) => {
             .status(200)
             .cookie("token", token, {
             httpOnly: false, // Changed to false to allow access from JavaScript
-            secure: true,
-            sameSite: "none",
-            domain: ".mahbodsr.ir",
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : undefined,
+            domain: process.env.NODE_ENV === "production" ? ".mahbodsr.ir" : "localhost",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
         })
             .end();

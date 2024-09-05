@@ -91,7 +91,13 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
 
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.use(cors({ origin: "https://mahbodsr.ir", credentials: true }));
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production" ? "https://mahbodsr.ir" : true,
+    credentials: true,
+  })
+);
 app.get("/phonecode/:phonecode", async (req: Request) => {
   event.emit("phonecode", req.params.phonecode);
 });
@@ -228,9 +234,10 @@ app.get("/phonecode/:phonecode", async (req: Request) => {
       .status(200)
       .cookie("token", token, {
         httpOnly: false, // Changed to false to allow access from JavaScript
-        secure: true,
-        sameSite: "none",
-        domain: ".mahbodsr.ir",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : undefined,
+        domain:
+          process.env.NODE_ENV === "production" ? ".mahbodsr.ir" : "localhost",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
       })
       .end();
