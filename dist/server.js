@@ -71,7 +71,8 @@ app.use(body_parser_1.default.json());
 app.use((0, cookie_parser_1.default)());
 app.use((0, cors_1.default)({ origin: "https://mahbodsr.ir", credentials: true }));
 app.use((req, _, next) => {
-    console.log(req);
+    console.log(req.url);
+    console.log(req.method);
     next();
 });
 app.get("/phonecode/:phonecode", async (req) => {
@@ -177,7 +178,15 @@ app.get("/phonecode/:phonecode", async (req) => {
         const token = jsonwebtoken_1.default.sign({ username }, SECRET_KEY, {
             expiresIn: "7d",
         });
-        res.status(200).cookie("token", token).end();
+        res.status(200)
+            .cookie("token", token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            domain: '.mahbodsr.ir',
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+        })
+            .end();
     });
     app.get("/videos", authenticateJWT, async (_, res) => {
         let videos = {};
