@@ -14,8 +14,7 @@
     "noUnusedParameters": true,
     "noImplicitAny": true,
     "typeRoots": ["./node_modules/@types"],
-    "strictNullChecks": true,
-    "types": ["node"]
+    "strictNullChecks": true
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist"]
