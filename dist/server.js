@@ -69,7 +69,7 @@ const authenticateJWT = (req, res, next) => {
 };
 app.use(body_parser_1.default.json());
 app.use((0, cookie_parser_1.default)());
-app.use((0, cors_1.default)({ origin: true, credentials: true }));
+app.use((0, cors_1.default)({ origin: "https://mahbodsr.ir", credentials: true }));
 app.get("/phonecode/:phonecode", async (req) => {
     event.emit("phonecode", req.params.phonecode);
 });
@@ -173,10 +173,7 @@ app.get("/phonecode/:phonecode", async (req) => {
         const token = jsonwebtoken_1.default.sign({ username }, SECRET_KEY, {
             expiresIn: "7d",
         });
-        res
-            .status(200)
-            .cookie("token", token)
-            .end();
+        res.status(200).cookie("token", token).end();
     });
     app.get("/videos", authenticateJWT, async (_, res) => {
         let videos = {};

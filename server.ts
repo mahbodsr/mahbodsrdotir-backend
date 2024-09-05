@@ -94,7 +94,7 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
 
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors({ origin: "https://mahbodsr.ir", credentials: true }));
 
 app.get("/phonecode/:phonecode", async (req: Request) => {
   event.emit("phonecode", req.params.phonecode);
@@ -126,52 +126,48 @@ app.get("/phonecode/:phonecode", async (req: Request) => {
   console.log("You should now be connected.");
   client.session.save();
 
-  app.get(
-    "/stream/:chatId/:messageId",
-    authenticateJWT,
-    async (req, res) => {
-      const range = req.headers.range;
-      if (!range) {
-        return res.status(400).send("Requires Range header");
-      }
-      const movieName = req.params.chatId + "/" + req.params.messageId;
-      const video = videos.get(movieName);
-      if (video === undefined) return res.status(404).send("File not found");
-
-      const [message] = await client.getMessages(video.chatId, {
-        ids: [video.messageId],
-      });
-
-      const media = message.media as Api.MessageMediaDocument; // Extracting the media from the message
-      const document = media.document as Api.Document;
-
-      const videoSize = document.size.toJSNumber();
-      const FOUR_KB = 1024 * 4;
-      const CHUNK_SIZE = FOUR_KB * 128;
-      const requestedStart = Number(range.replace(/\D/g, ""));
-      const start = requestedStart - (requestedStart % FOUR_KB);
-      const end = Math.min(start + CHUNK_SIZE, videoSize);
-      const contentLength = end - start;
-      let chunks = Buffer.from([]);
-      for await (const chunk of client.iterDownload({
-        file: media,
-        requestSize: CHUNK_SIZE,
-        offset: bigInt(start),
-        fileSize: bigInt(contentLength),
-      })) {
-        if (chunks.length === 0) chunks = chunk;
-        console.log(chunks.length);
-      }
-      const headers = {
-        "Content-Range": `bytes ${start}-${end - 1}/${videoSize}`,
-        "Accept-Ranges": "bytes",
-        "Content-Length": chunks.length,
-        "Content-Type": "video/mp4",
-      };
-      res.writeHead(206, headers);
-      res.end(chunks);
+  app.get("/stream/:chatId/:messageId", authenticateJWT, async (req, res) => {
+    const range = req.headers.range;
+    if (!range) {
+      return res.status(400).send("Requires Range header");
     }
-  );
+    const movieName = req.params.chatId + "/" + req.params.messageId;
+    const video = videos.get(movieName);
+    if (video === undefined) return res.status(404).send("File not found");
+
+    const [message] = await client.getMessages(video.chatId, {
+      ids: [video.messageId],
+    });
+
+    const media = message.media as Api.MessageMediaDocument; // Extracting the media from the message
+    const document = media.document as Api.Document;
+
+    const videoSize = document.size.toJSNumber();
+    const FOUR_KB = 1024 * 4;
+    const CHUNK_SIZE = FOUR_KB * 128;
+    const requestedStart = Number(range.replace(/\D/g, ""));
+    const start = requestedStart - (requestedStart % FOUR_KB);
+    const end = Math.min(start + CHUNK_SIZE, videoSize);
+    const contentLength = end - start;
+    let chunks = Buffer.from([]);
+    for await (const chunk of client.iterDownload({
+      file: media,
+      requestSize: CHUNK_SIZE,
+      offset: bigInt(start),
+      fileSize: bigInt(contentLength),
+    })) {
+      if (chunks.length === 0) chunks = chunk;
+      console.log(chunks.length);
+    }
+    const headers = {
+      "Content-Range": `bytes ${start}-${end - 1}/${videoSize}`,
+      "Accept-Ranges": "bytes",
+      "Content-Length": chunks.length,
+      "Content-Type": "video/mp4",
+    };
+    res.writeHead(206, headers);
+    res.end(chunks);
+  });
 
   app.post("/otp/send", async (req: Request, res: Response) => {
     const { username } = req.body as Record<string, string>;
@@ -232,10 +228,7 @@ app.get("/phonecode/:phonecode", async (req: Request) => {
     const token = jwt.sign({ username }, SECRET_KEY, {
       expiresIn: "7d",
     });
-    res
-      .status(200)
-      .cookie("token", token)
-      .end();
+    res.status(200).cookie("token", token).end();
   });
 
   app.get("/videos", authenticateJWT, async (_, res) => {
