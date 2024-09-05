@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "CommonJS",
-    "moduleResolution": null,
+    "moduleResolution": "node",
     "outDir": "./dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -13,8 +13,10 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitAny": true,
-    "typeRoots": ["node_modules/@types", "types"],
-    "strictNullChecks": true
+    "typeRoots": ["./node_modules/@types", "./types"],
+    "strictNullChecks": true,
+    "types": ["node"]
   },
+  "include": ["**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
