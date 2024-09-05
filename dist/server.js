@@ -175,7 +175,7 @@ app.get("/phonecode/:phonecode", async (req) => {
         });
         res.status(200)
             .cookie("token", token, {
-            httpOnly: true,
+            httpOnly: false, // Changed to false to allow access from JavaScript
             secure: true,
             sameSite: 'none',
             domain: '.mahbodsr.ir',
