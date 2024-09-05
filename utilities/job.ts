@@ -1,7 +1,7 @@
 import { CronJob } from "cron";
 import { get } from "https";
 
-const backendUrl = "https://mahbodsr.ir";
+const backendUrl = "https://api.mahbodsr.ir";
 new CronJob("*/10 * * * *", () => {
   get(backendUrl, (res) => {
     if (res.statusCode === 200) console.log("server restarted.");
